@@ -4,7 +4,9 @@
     "description": "CRC Utils. Combines two or more CRC32 checksums into new one.",
     "keywords": ["crc32", "crc32_combine", "crc", "gzip"],
     "author": "Sławomir Janecki <janecki@gmail.com>",
-    "dependencies": {},
+    "dependencies": {
+        "compress-buffer-crc32": ""
+    },
     "main": "./build/default/crc32",
     "repository": {
         "type": "git",
