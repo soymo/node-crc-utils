@@ -1,11 +1,12 @@
 {
     "name": "crc-utils2",
-    "version": "0.9.10",
+    "version": "0.9.11",
     "description": "CRC Utils. Combines two or more CRC32 checksums into new one.",
     "keywords": ["crc32", "crc32_combine", "crc", "gzip"],
     "author": "Sławomir Janecki <janecki@gmail.com>",
     "dependencies": {
-        "compress-buffer-crc32": ""
+        "compress-buffer-crc32": "",
+        "binpack": ""
     },
     "main": "./index.js",
     "repository": {
