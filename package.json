@@ -1,13 +1,13 @@
 {
     "name": "crc-utils2",
-    "version": "0.9.9",
+    "version": "0.9.10",
     "description": "CRC Utils. Combines two or more CRC32 checksums into new one.",
     "keywords": ["crc32", "crc32_combine", "crc", "gzip"],
     "author": "Sławomir Janecki <janecki@gmail.com>",
     "dependencies": {
         "compress-buffer-crc32": ""
     },
-    "main": "./build/default/crc32",
+    "main": "./index.js",
     "repository": {
         "type": "git",
         "url": "https://github.com/DreamLab/crc32_combine2.git"
