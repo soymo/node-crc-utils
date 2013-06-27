@@ -2,8 +2,10 @@
 #include <node_buffer.h>
 #include <v8.h>
 #include <stdio.h>
+#include <byteswap.h>
 
 #define GF2_DIM 32
+#define IS_BIG_ENDIAN (*(uint16_t *)"\0\xff" < 0x100)
 
 unsigned long gf2_matrix_times(unsigned long *mat, unsigned long vec) {
     unsigned long sum = 0;
@@ -112,6 +114,22 @@ Handle<Value> crc32_combine(const Arguments& args) {
   return scope.Close(actualBuffer);
 }
 
+void get_buffer_meta (Handle<Object> buf, unsigned long *crc, unsigned long *len) {
+    HandleScope scope;
+
+    Local<Object> buffer = buf->ToObject();
+    char *data = Buffer::Data(buffer);
+    size_t length = Buffer::Length(buffer);
+
+    if (IS_BIG_ENDIAN) {
+        *crc = bswap_32((uint32_t) *(data + (length - 8)));
+        *len = bswap_32((uint32_t) *(data + (length - 4)));
+    } else {
+        *crc = (uint32_t) *(data + (length - 8));
+        *len = (uint32_t) *(data + (length - 4));
+    }
+}
+
 Handle<Value> crc32_combine_multi(const Arguments& args) {
   HandleScope scope;
   
@@ -133,15 +151,24 @@ Handle<Value> crc32_combine_multi(const Arguments& args) {
       return scope.Close(Undefined());
   }
   
-  Local<Object> firstElementCrc = Local<Object>::Cast(arr->Get(0));
-  unsigned long retCrc = firstElementCrc->Get(v8::String::New("crc"))->Uint32Value();
-  unsigned long retLen = firstElementCrc->Get(v8::String::New("len"))->Uint32Value();
+//  Local<Object> firstElementCrc = Local<Object>::Cast(arr->Get(0));
+//  unsigned long retCrc = firstElementCrc->Get(v8::String::New("crc"))->Uint32Value();
+//  unsigned long retLen = firstElementCrc->Get(v8::String::New("len"))->Uint32Value();
+  unsigned long retCrc;
+  unsigned long retLen;
+
+  get_buffer_meta(Local<Object>::Cast(arr->Get(0)), &retCrc, &retLen);
   
   int n;
   for(n=1; n<arLength; n++){
-    Local<Object> obj = Local<Object>::Cast(arr->Get(n));
-    unsigned long crc1 = obj->Get(v8::String::New("crc"))->Uint32Value();
-    unsigned long len2 = obj->Get(v8::String::New("len"))->Uint32Value();
+//    Local<Object> obj = Local<Object>::Cast(arr->Get(n));
+//    unsigned long crc1 = obj->Get(v8::String::New("crc"))->Uint32Value();
+//    unsigned long len2 = obj->Get(v8::String::New("len"))->Uint32Value();
+    unsigned long crc1;
+    unsigned long len2;
+
+    get_buffer_meta (Local<Object>::Cast(arr->Get(n)), &crc1, &len2);
+
     retCrc = crc32_combine(retCrc, crc1, len2);
     retLen += len2;
   }
