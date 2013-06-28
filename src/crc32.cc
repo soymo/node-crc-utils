@@ -142,37 +142,26 @@ Handle<Value> crc32_combine_multi(const Arguments& args) {
       ThrowException(Exception::TypeError(String::New("Wrong arguments")));
       return scope.Close(Undefined());
   }
-  
+
   Local<Array> arr = Local<Array>::Cast(args[0]);
   uint32_t arLength = arr->Length();
-  
-  if (arLength<2) {
-      ThrowException(Exception::TypeError(String::New("Array too small. I need min 2 elements")));
-      return scope.Close(Undefined());
-  }
-  
-//  Local<Object> firstElementCrc = Local<Object>::Cast(arr->Get(0));
-//  unsigned long retCrc = firstElementCrc->Get(v8::String::New("crc"))->Uint32Value();
-//  unsigned long retLen = firstElementCrc->Get(v8::String::New("len"))->Uint32Value();
   unsigned long retCrc;
   unsigned long retLen;
 
   get_buffer_meta(Local<Object>::Cast(arr->Get(0)), &retCrc, &retLen);
-  
-  int n;
-  for(n=1; n<arLength; n++){
-//    Local<Object> obj = Local<Object>::Cast(arr->Get(n));
-//    unsigned long crc1 = obj->Get(v8::String::New("crc"))->Uint32Value();
-//    unsigned long len2 = obj->Get(v8::String::New("len"))->Uint32Value();
-    unsigned long crc1;
-    unsigned long len2;
 
-    get_buffer_meta (Local<Object>::Cast(arr->Get(n)), &crc1, &len2);
+  if (arLength > 1) {
+    for (int n=1; n<arLength; n++) {
+      unsigned long crc1;
+      unsigned long len2;
 
-    retCrc = crc32_combine(retCrc, crc1, len2);
-    retLen += len2;
+      get_buffer_meta (Local<Object>::Cast(arr->Get(n)), &crc1, &len2);
+
+      retCrc = crc32_combine(retCrc, crc1, len2);
+      retLen += len2;
+    }
   }
-  
+
   int length = sizeof(unsigned long);
   node::Buffer *slowBuffer = node::Buffer::New((char *)&retCrc, length);
   Local<Object> globalObj = Context::GetCurrent()->Global();
