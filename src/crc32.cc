@@ -114,8 +114,12 @@ Handle<Value> crc32_combine(const Arguments& args) {
   return scope.Close(actualBuffer);
 }
 
-void get_buffer_meta (Handle<Object> buf, unsigned long *crc, unsigned long *len) {
+bool get_buffer_meta (Handle<Object> buf, unsigned long *crc, unsigned long *len) {
     HandleScope scope;
+
+    if (!Buffer::HasInstance(buf)) {
+        return false;
+    }
 
     Local<Object> buffer = buf->ToObject();
     char *data = Buffer::Data(buffer);
@@ -128,6 +132,8 @@ void get_buffer_meta (Handle<Object> buf, unsigned long *crc, unsigned long *len
         *crc = (uint32_t) *(data + (length - 8));
         *len = (uint32_t) *(data + (length - 4));
     }
+
+    return true;
 }
 
 Handle<Value> crc32_combine_multi(const Arguments& args) {
@@ -148,14 +154,21 @@ Handle<Value> crc32_combine_multi(const Arguments& args) {
   unsigned long retCrc;
   unsigned long retLen;
 
-  get_buffer_meta(Local<Object>::Cast(arr->Get(0)), &retCrc, &retLen);
+  bool meta = get_buffer_meta(Local<Object>::Cast(arr->Get(0)), &retCrc, &retLen);
+
+  if (!meta) {
+    return scope.Close(Undefined());
+  }
 
   if (arLength > 1) {
     for (int n=1; n<arLength; n++) {
       unsigned long crc1;
       unsigned long len2;
 
-      get_buffer_meta (Local<Object>::Cast(arr->Get(n)), &crc1, &len2);
+      meta = get_buffer_meta (Local<Object>::Cast(arr->Get(n)), &crc1, &len2);
+      if (!meta) {
+        return scope.Close(Undefined());
+      }
 
       retCrc = crc32_combine(retCrc, crc1, len2);
       retLen += len2;
